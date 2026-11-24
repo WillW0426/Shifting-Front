@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//Manages resource generation
 public class ResourceManager : MonoBehaviour
 {
+    public static ResourceManager Instance { get; private set; }
     [SerializeField] private Faction owner;
     [SerializeField] private float generationInterval = 5;
     [SerializeField] private List<ResourceStructure> ownedStructures = new List<ResourceStructure>();
@@ -11,8 +13,12 @@ public class ResourceManager : MonoBehaviour
     [SerializeField] Dictionary<ResourceType, float> resourcesUsage;
     private float nextGenerateTime;
 
+    public static event System.Action<bool> OnHungerChanged;
+    private bool isHungry = false;
+
     private void Awake()
     {
+        Instance = this;
         resourceAmount = CreateResourceDictionary();
         resourceGains = CreateResourceDictionary();
         resourcesUsage = CreateResourceDictionary();
@@ -36,9 +42,10 @@ public class ResourceManager : MonoBehaviour
         {
             foreach (ResourceType type in System.Enum.GetValues(typeof(ResourceType)))
             {
-                resourceAmount[type] += resourceGains[type];
+                resourceAmount[type] = Mathf.Max(0, resourceAmount[type] + resourceGains[type] - resourcesUsage[type]);
             }
 
+            /*
             //Debug
             foreach (ResourceType type in resourceAmount.Keys)
             {
@@ -46,13 +53,24 @@ public class ResourceManager : MonoBehaviour
             }
             Debug.Log("=====================================================");
             //
-
+            */
+            
             nextGenerateTime += generationInterval;
         }
     }
     public Faction GetOwner()
     {
         return owner;
+    }
+
+    private void OnEnable()
+    {
+        ResourceStructure.OnStructureChanged += ReCalculateEconomy;
+    }
+
+    private void OnDisable()
+    {
+        ResourceStructure.OnStructureChanged -= ReCalculateEconomy;
     }
 
     //Checks all owned resource structures and recalculates gains and usage, this should be called whenever a structure is changed such as ownership change or level up etc
@@ -72,6 +90,7 @@ public class ResourceManager : MonoBehaviour
         }
 
         //Debug
+        Debug.Log("Economy Recalculated");
         foreach (ResourceType type in resourceGains.Keys)
         {
             Debug.Log($"Gains: {owner} {type}: {resourceGains[type]}");
@@ -108,6 +127,45 @@ public class ResourceManager : MonoBehaviour
         ReCalculateEconomy();
     }
 
+    public bool HasResources(ResourceType type, float amount)
+    {
+        return resourceAmount[type] >= amount;
+    }
+
+    public bool SpendResources(ResourceType type, float amount)
+    {
+        if (amount < 0 || !HasResources(type, amount))
+            return false;
+
+        resourceAmount[type] -= amount;
+        return true;
+    }
+
+    public float GetResourceAmount(ResourceType type)
+    {
+        return resourceAmount[type];
+    }
+
+    public void AddResourceUsage(ResourceType type, float amount)
+    {
+        resourcesUsage[type] += amount;
+        CheckHunger();
+    }
+
+    public void RemoveResourceUsage(ResourceType type, float amount)
+    {
+        resourcesUsage[type] = Mathf.Max(
+            0,
+            resourcesUsage[type] - amount
+        );
+        CheckHunger();
+    }
+
+    public float GetResourceNetChange(ResourceType type)
+    {
+        return resourceGains[type] - resourcesUsage[type];
+    }
+
     private Dictionary<ResourceType, float> CreateResourceDictionary()
     {
         return new Dictionary<ResourceType, float>
@@ -118,5 +176,27 @@ public class ResourceManager : MonoBehaviour
         { ResourceType.Metal, 0 },
         { ResourceType.Horses, 0 }
     };
+    }
+
+    public bool IsResourceAvailable(ResourceType type)
+    {
+        return resourceAmount[type] >= resourcesUsage[type];
+    }
+
+    private void CheckHunger()
+    {
+        bool hungry = resourcesUsage[ResourceType.Food] >
+                      resourceGains[ResourceType.Food];
+
+        if (hungry == isHungry)
+            return;
+
+        isHungry = hungry;
+        OnHungerChanged?.Invoke(isHungry);
+    }
+
+    public bool IsHungry()
+    {
+        return isHungry;
     }
 }

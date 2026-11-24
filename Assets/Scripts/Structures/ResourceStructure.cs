@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class ResourceStructure : MonoBehaviour
 {
@@ -6,16 +7,13 @@ public class ResourceStructure : MonoBehaviour
     [SerializeField] private ResourceType resourceType;
     [SerializeField] private Faction faction;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    private StructureStats stats;
 
-    // Update is called once per frame
-    void Update()
+    public static event Action OnStructureChanged;
+
+    private void Awake()
     {
-        
+        stats = GetComponent<StructureStats>();
     }
 
     public ResourceType GetType()
@@ -25,7 +23,7 @@ public class ResourceStructure : MonoBehaviour
 
     public float GetAmount()
     {
-        return generationAmount;
+        return generationAmount * stats.GetProductionMultiplier();
     }
 
     public Faction GetFaction()
@@ -36,5 +34,19 @@ public class ResourceStructure : MonoBehaviour
     public void SetFaction(Faction newFaction)
     {
         faction = newFaction;
+    }
+
+    //event
+    public static void NotifyStructureChanged()
+    {
+        OnStructureChanged?.Invoke();
+    }
+
+    private void OnDestroy()
+    {
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.RemoveStructure(this);
+        }
     }
 }

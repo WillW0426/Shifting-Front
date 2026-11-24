@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 
 public class InputManager : MonoBehaviour
@@ -9,14 +11,32 @@ public class InputManager : MonoBehaviour
     private RTSControls controls;
     private Camera mainCamera;
 
-    [SerializeField]  private UnitController selectedUnit;
-    [SerializeField]  private bool isSequencing;
+    [SerializeField] private LayerMask selectableLayers;
+    [SerializeField] private List<UnitController> selectedUnits = new List<UnitController>();
+    [SerializeField] private StructureSelection selectedStructure;
+    [SerializeField] private bool isSequencing;
+    [SerializeField] private bool isMultiSelecting;
+
+    [Header("Box Selection")]
+    [SerializeField] private RectTransform selectionBox;
+    [SerializeField] private bool isSelectPressed;
+    [SerializeField] private bool isBoxSelecting;
+
+    private Vector2 selectStartScreenPosition;
+
+    [SerializeField] private bool isInteractPressed;
+
+    [SerializeField] private Vector2 interactStartScreenPosition;
+
+    [SerializeField] private float dragThreshold = 5f;
+
+    [SerializeField] private float formationSpacing;
+    [SerializeField] private float minimumFormationSpacing = 1;
 
     //For showing movement previews
     [SerializeField] private bool isRevealing;
     public static event Action<bool> RevealChanged;
     //For placement preview
-    [SerializeField] private bool isInteractHeld;
     [SerializeField] private bool isPlacementPreviewActive;
     private Vector2 interactDestination;
     private float previewAngle;
@@ -27,15 +47,20 @@ public class InputManager : MonoBehaviour
         mainCamera = Camera.main;
 
         // Subscribe to selection input.
-        controls.Player.Select.performed += OnSelect;
+        controls.Player.Select.started += OnSelect;
+        controls.Player.Select.canceled += OnSelectCanceled;
 
         // Subscribe to interaction input.
-        controls.Player.Interact.performed += OnInteract;
+        controls.Player.Interact.started += OnInteract;
         controls.Player.Interact.canceled += OnInteractCanceled;
 
         // Track Shift being pressed and released.
         controls.Player.Sequence.started += OnSequenceStarted;
         controls.Player.Sequence.canceled += OnSequenceCanceled;
+
+        // Track ctrl
+        controls.Player.Multi.started += OnMultiStarted;
+        controls.Player.Multi.canceled += OnMultiCanceled;
 
         //Visuals
         controls.Player.Reveal.started += OnRevealStarted;
@@ -49,6 +74,12 @@ public class InputManager : MonoBehaviour
 
     private void OnDisable()
     {
+        isSelectPressed = false;
+        isBoxSelecting = false;
+
+        if (selectionBox != null)
+            selectionBox.gameObject.SetActive(false);
+
         controls.Player.Disable();
 
         isSequencing = false;
@@ -63,21 +94,82 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
-        //For placement preview
-        if (!isInteractHeld || !isPlacementPreviewActive || selectedUnit == null)
+        selectedUnits.RemoveAll(unit => unit == null);
+        UpdateSelection();
+
+        if (!isInteractPressed || selectedUnits.Count == 0)
             return;
 
-        Vector2 mousePosition = GetMouseWorldPosition();
-        Vector2 direction = mousePosition - interactDestination;
-
-        if (direction.sqrMagnitude > 0.0001f)
+        // Detect whether the player has started dragging
+        if (!isPlacementPreviewActive)
         {
-            previewAngle =
-                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
+            Vector2 mousePosition =
+                controls.Player.Point.ReadValue<Vector2>();
+
+            float dragDistance = Vector2.Distance(
+                mousePosition, interactStartScreenPosition
+            );
+
+            if (dragDistance < dragThreshold)
+                return;
+
+            isPlacementPreviewActive = true;
+
+            foreach (UnitController unit in selectedUnits)
+            {
+                unit.GetComponent<UnitVisuals>()
+                    .ShowPlacementPreview(interactDestination, previewAngle);
+            }
         }
 
-        selectedUnit.GetComponent<UnitVisuals>()
-            .UpdatePlacementPreview(interactDestination, previewAngle);
+        Vector2 drag = GetMouseWorldPosition() - interactDestination;
+
+        if (selectedUnits.Count > 1)
+        {
+            Vector2 right = drag.normalized;
+
+            if (right == Vector2.zero)
+                right = selectedUnits[0].transform.right;
+
+            Vector2 forward = new Vector2(-right.y, right.x);
+
+            previewAngle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg - 90f;
+
+            float spacing = Mathf.Max(
+                minimumFormationSpacing,
+                drag.magnitude / (selectedUnits.Count - 1)
+            );
+
+            List<UnitController> sortedUnits =
+                new List<UnitController>(selectedUnits);
+
+            sortedUnits.Sort((a, b) =>
+                Vector2.Dot((Vector2)a.transform.position, right)
+                .CompareTo(
+                    Vector2.Dot((Vector2)b.transform.position, right)
+                )
+            );
+
+            for (int i = 0; i < sortedUnits.Count; i++)
+            {
+                Vector2 previewPosition =
+                    interactDestination + right * i * spacing;
+
+                sortedUnits[i].GetComponent<UnitVisuals>()
+                    .UpdatePlacementPreview(previewPosition, previewAngle);
+            }
+        }
+        else
+        {
+            // 
+            if (drag.sqrMagnitude > 0.0001f)
+            {
+                previewAngle = Mathf.Atan2(drag.y, drag.x) * Mathf.Rad2Deg;
+            }
+
+            selectedUnits[0].GetComponent<UnitVisuals>()
+                .UpdatePlacementPreview(interactDestination, previewAngle);
+        }
     }
 
     private Vector2 GetMouseWorldPosition()
@@ -94,112 +186,411 @@ public class InputManager : MonoBehaviour
     }
 
     //Selecting
-    private void OnSelect(InputAction.CallbackContext context)
+    private void SelectSingle()
     {
-        //check for colliders on in this world position
-        Vector2 worldPosition = GetMouseWorldPosition();
-        Collider2D hit = Physics2D.OverlapPoint(worldPosition);
+        if (IsPointerOverButton())
+            return;
 
-        if (hit != null)
-        {
-            //if the collider is a unit
+        Vector2 worldPosition = GetMouseWorldPosition();
+        Collider2D hit = Physics2D.OverlapPoint(worldPosition, selectableLayers);
+
+        if (hit != null){
+            // Check for a structure 
+            StructureSelection structure = hit.GetComponentInParent<StructureSelection>();
+
+            if (structure != null)
+            {
+                ClearSelectedUnits();
+                SelectStructure(structure);
+                return;
+            }
+
             UnitController unit = hit.GetComponentInParent<UnitController>();
 
             if (unit != null)
             {
-                SetSelectedUnit(unit);
-                Debug.Log("Selected: " + unit.name);
+                DeselectStructure();
+
+                if (isMultiSelecting)
+                {
+                    // Toggle the unit's selection
+                    if (selectedUnits.Contains(unit))
+                        RemoveSelectedUnit(unit);
+                    else
+                        AddSelectedUnit(unit);
+                }
+                else
+                {
+                    // Replace the current selection
+                    ClearSelectedUnits();
+                    AddSelectedUnit(unit);
+                }
+
                 return;
             }
         }
+        // Clicking empty space
+        DeselectStructure();
 
-        SetSelectedUnit(null);
-        Debug.Log("Unit deselected");
+        if (!isMultiSelecting)
+            ClearSelectedUnits();
     }
 
-    //setting a selected unit
-    private void SetSelectedUnit(UnitController newUnit)
+    private void OnSelect(InputAction.CallbackContext context)
     {
-        //hide the selection outline for old selected unit
-        if (selectedUnit != null)
-        {
-            UnitVisuals oldVisuals =
-                selectedUnit.GetComponent<UnitVisuals>();
+        if (IsPointerOverButton())
+            return;
 
-            oldVisuals.HideOutline();
+        if (isInteractPressed)
+            return;
+
+        isSelectPressed = true;
+        isBoxSelecting = false;
+
+        selectStartScreenPosition =
+            controls.Player.Point.ReadValue<Vector2>();
+    }
+
+    private void UpdateSelection()
+    {
+        if (!isSelectPressed)
+            return;
+
+        Vector2 mousePosition =
+            controls.Player.Point.ReadValue<Vector2>();
+
+        float dragDistance = Vector2.Distance(
+            mousePosition, selectStartScreenPosition
+        );
+
+        if (!isBoxSelecting)
+        {
+            if (dragDistance < dragThreshold)
+                return;
+
+            isBoxSelecting = true;
+            selectionBox.gameObject.SetActive(true);
         }
 
-        //setting new selected unit and revealing selection visual
-        selectedUnit = newUnit;
+        UpdateSelectionBox(mousePosition);
+    }
 
-        if (selectedUnit != null)
+    private void UpdateSelectionBox(Vector2 mousePosition)
+    {
+        RectTransform parent = selectionBox.parent as RectTransform;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parent,
+            selectStartScreenPosition,
+            null,
+            out Vector2 start
+        );
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parent,
+            mousePosition,
+            null,
+            out Vector2 end
+        );
+
+        Vector2 center = (start + end) / 2f;
+
+        Vector2 size = new Vector2(
+            Mathf.Abs(end.x - start.x),
+            Mathf.Abs(end.y - start.y)
+        );
+
+        selectionBox.localPosition = center;
+        selectionBox.sizeDelta = size;
+    }
+
+    private void OnSelectCanceled(InputAction.CallbackContext context)
+    {
+        if (!isSelectPressed)
+            return;
+
+        isSelectPressed = false;
+
+        Vector2 mousePosition =
+            controls.Player.Point.ReadValue<Vector2>();
+
+        float dragDistance = Vector2.Distance(
+            mousePosition, selectStartScreenPosition
+        );
+
+        if (isBoxSelecting || dragDistance >= dragThreshold)
         {
-            UnitVisuals newVisuals =
-                selectedUnit.GetComponent<UnitVisuals>();
+            SelectUnitsInBox();
+        }
+        else
+        {
+            SelectSingle();
+        }
 
-            newVisuals.ShowOutline();
+        isBoxSelecting = false;
+        selectionBox.gameObject.SetActive(false);
+    }
+
+    private void SelectUnitsInBox()
+    {
+        Vector2 start = mainCamera.ScreenToWorldPoint(
+            new Vector3(
+                selectStartScreenPosition.x,
+                selectStartScreenPosition.y,
+                -mainCamera.transform.position.z
+            )
+        );
+
+        Vector2 end = GetMouseWorldPosition();
+
+        Collider2D[] hits = Physics2D.OverlapAreaAll(
+            Vector2.Min(start, end),
+            Vector2.Max(start, end),
+            selectableLayers
+        );
+
+        DeselectStructure();
+
+        if (!isMultiSelecting)
+            ClearSelectedUnits();
+
+        foreach (Collider2D hit in hits)
+        {
+            UnitController unit =
+                hit.GetComponentInParent<UnitController>();
+
+            if (unit != null)
+            {
+                AddSelectedUnit(unit);
+            }
         }
     }
+
+
+    #region Multi Select Functions
+    private void AddSelectedUnit(UnitController unit)
+    {
+        if (!selectedUnits.Contains(unit))
+        {
+            selectedUnits.Add(unit);
+            unit.GetComponent<UnitVisuals>().ShowOutline();
+        }
+    }
+
+    private void RemoveSelectedUnit(UnitController unit)
+    {
+        if (selectedUnits.Remove(unit))
+        {
+            unit.GetComponent<UnitVisuals>().HideOutline();
+        }
+    }
+
+    private void ClearSelectedUnits()
+    {
+        foreach (UnitController unit in selectedUnits)
+        {
+            unit.GetComponent<UnitVisuals>().HideOutline();
+        }
+
+        selectedUnits.Clear();
+    }
+
+    private Vector2 GetGroupCenter()
+    {
+        Vector2 center = Vector2.zero;
+
+        foreach (UnitController unit in selectedUnits)
+        {
+            if (isSequencing)
+            {
+                List<Vector2> route = unit.GetPlannedRoute();
+
+                if (route.Count > 0)
+                {
+                    center += route[route.Count - 1];
+                    continue;
+                }
+            }
+
+            center += (Vector2)unit.transform.position;
+        }
+
+        return center / selectedUnits.Count;
+    }
+
+    private void MoveGroup(Vector2 destination)
+    {
+        Vector2 center = GetGroupCenter();
+        Vector2 forward = (destination - center).normalized;
+
+        if (forward == Vector2.zero)
+            forward = selectedUnits[0].transform.up;
+
+        Vector2 right = new Vector2(forward.y, -forward.x);
+
+        Vector2 startPosition = destination
+            - right * formationSpacing * (selectedUnits.Count - 1) / 2f;
+
+        MoveGroup(startPosition, forward, formationSpacing);
+    }
+
+    private void MoveGroup(Vector2 startPosition, Vector2 forward, float spacing)
+    {
+        Vector2 right = new Vector2(forward.y, -forward.x);
+
+        float finalAngle =
+            Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg - 90f;
+
+        List<UnitController> sortedUnits =
+            new List<UnitController>(selectedUnits);
+
+        sortedUnits.Sort((a, b) =>
+            Vector2.Dot((Vector2)a.transform.position, right)
+            .CompareTo(
+                Vector2.Dot((Vector2)b.transform.position, right)
+            )
+        );
+
+        for (int i = 0; i < sortedUnits.Count; i++)
+        {
+            Vector2 unitDestination = startPosition + right * i * spacing;
+
+            UnitController unit = sortedUnits[i];
+
+            unit.ClearFinalRotation();
+
+            if (isSequencing)
+                unit.QueueMove(unitDestination);
+            else
+                unit.MoveTo(unitDestination);
+
+            unit.SetFinalRotation(finalAngle);
+        }
+    }
+
+    #endregion
 
     private void OnInteract(InputAction.CallbackContext context)
     {
-        if (selectedUnit == null)
+        if (selectedUnits.Count == 0)
             return;
 
-        //check for if its a hold or tap action
-        //hold
-        if (context.interaction is UnityEngine.InputSystem.Interactions.HoldInteraction)
-        {
-            // Begin placement preview.
-            // The rest happens in update
-            interactDestination = GetMouseWorldPosition();
+        isInteractPressed = true;
 
-            previewAngle = selectedUnit.transform.eulerAngles.z;
+        interactDestination = GetMouseWorldPosition();
 
-            isInteractHeld = true;
-            isPlacementPreviewActive = true;
+        interactStartScreenPosition =
+            controls.Player.Point.ReadValue<Vector2>();
 
-            selectedUnit.GetComponent<UnitVisuals>()
-                .ShowPlacementPreview(interactDestination, previewAngle);
-        }
-        //tap
-        else if (context.interaction is UnityEngine.InputSystem.Interactions.TapInteraction)
-        {
-            // Normal quick-click movement for unit.
-            Vector2 destination = GetMouseWorldPosition();
-
-            // Cancel any previously requested final rotation.
-            selectedUnit.ClearFinalRotation();
-
-            //If its a sequence movement queue else just move
-            if (isSequencing)
-                selectedUnit.QueueMove(destination);
-            else
-                selectedUnit.MoveTo(destination);
-        }
+        previewAngle = selectedUnits[0].transform.eulerAngles.z;
     }
 
     private void OnInteractCanceled(InputAction.CallbackContext context)
     {
-        if (!isInteractHeld || selectedUnit == null)
+        if (!isInteractPressed)
             return;
 
-        selectedUnit.GetComponent<UnitVisuals>().HidePlacementPreview();
+        isInteractPressed = false;
 
-        // Give the unit its movement order.
-        if (isSequencing)
-            selectedUnit.QueueMove(interactDestination);
+        // Tap movement
+        if (!isPlacementPreviewActive)
+        {
+            if (selectedUnits.Count > 1)
+            {
+                MoveGroup(interactDestination);
+            }
+            else if (selectedUnits.Count == 1)
+            {
+                UnitController unit = selectedUnits[0];
+
+                unit.ClearFinalRotation();
+
+                if (isSequencing)
+                    unit.QueueMove(interactDestination);
+                else
+                    unit.MoveTo(interactDestination);
+            }
+        }
+        // Drag movement
         else
-            selectedUnit.MoveTo(interactDestination);
+        {
+            foreach (UnitController unit in selectedUnits)
+            {
+                unit.GetComponent<UnitVisuals>()
+                    .HidePlacementPreview();
+            }
 
-        // Rotate to the preview angle after finishing the route.
-        selectedUnit.SetFinalRotation(previewAngle);
+            if (selectedUnits.Count > 1)
+            {
+                Vector2 drag =
+                    GetMouseWorldPosition() - interactDestination;
 
-        isInteractHeld = false;
+                Vector2 right = drag.normalized;
+
+                if (right == Vector2.zero)
+                    right = selectedUnits[0].transform.right;
+
+                Vector2 forward = new Vector2(-right.y, right.x);
+
+                float spacing = Mathf.Max(
+                    minimumFormationSpacing,
+                    drag.magnitude / (selectedUnits.Count - 1)
+                );
+
+                MoveGroup(interactDestination, forward, spacing);
+            }
+            else if (selectedUnits.Count == 1)
+            {
+                UnitController unit = selectedUnits[0];
+
+                Vector2 drag =
+                    GetMouseWorldPosition() - interactDestination;
+
+                if (drag.sqrMagnitude > 0.0001f)
+                {
+                    previewAngle = Mathf.Atan2(drag.y, drag.x) * Mathf.Rad2Deg;
+                }
+
+                unit.ClearFinalRotation();
+
+                if (isSequencing)
+                    unit.QueueMove(interactDestination);
+                else
+                    unit.MoveTo(interactDestination);
+
+                unit.SetFinalRotation(previewAngle);
+            }
+        }
+
         isPlacementPreviewActive = false;
     }
 
+    #region Structures
+    private void SelectStructure(StructureSelection structure)
+    {
+        // Hide the previously selected structure's buttons
+        if (selectedStructure != null)
+        {
+            selectedStructure.Deselect();
+        }
 
+        selectedStructure = structure;
+        selectedStructure.Select();
+    }
+
+    private void DeselectStructure()
+    {
+        if (selectedStructure != null)
+        {
+            selectedStructure.Deselect();
+            selectedStructure = null;
+        }
+    }
+    #endregion
+
+    //----------------------------------------------------------------------------------------
+    // Detecting Input
+    #region Input Manager
     private void OnSequenceStarted(InputAction.CallbackContext context)
     {
         isSequencing = true;
@@ -210,6 +601,15 @@ public class InputManager : MonoBehaviour
     {
         isSequencing = false;
         Debug.Log("Sequence mode disabled");
+    }
+    private void OnMultiStarted(InputAction.CallbackContext context)
+    {
+        isMultiSelecting = true;
+    }
+
+    private void OnMultiCanceled(InputAction.CallbackContext context)
+    {
+        isMultiSelecting = false;
     }
 
     private void OnRevealStarted(InputAction.CallbackContext context)
@@ -223,4 +623,32 @@ public class InputManager : MonoBehaviour
         isRevealing = false;
         RevealChanged?.Invoke(false);
     }
+    #endregion
+    private bool IsPointerOverButton()
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        PointerEventData pointerData =
+            new PointerEventData(EventSystem.current);
+
+        pointerData.position = Mouse.current.position.ReadValue();
+
+        List<RaycastResult> results = new List<RaycastResult>();
+
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        foreach (RaycastResult result in results)
+        {
+            if (result.gameObject.GetComponentInParent<Button>() != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
+
+
+

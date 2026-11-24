@@ -1,0 +1,533 @@
+fileFormatVersion: 2
+guid: f95d8a02975f596459211b5d316594f9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -458071848945026067
+    second: Farm-removebg-preview_0
+  - first:
+      213: 3888056910143915664
+    second: Farm-removebg-preview_1
+  - first:
+      213: 3754253679594496869
+    second: Farm-removebg-preview_2
+  - first:
+      213: -226127294666455273
+    second: Farm-removebg-preview_3
+  - first:
+      213: 6736102113873601100
+    second: Farm-removebg-preview_4
+  - first:
+      213: 3897394197902610667
+    second: Farm-removebg-preview_5
+  - first:
+      213: -5164312344782373443
+    second: Farm-removebg-preview_6
+  - first:
+      213: 2164479798738633908
+    second: Farm-removebg-preview_7
+  - first:
+      213: 7420300690421983203
+    second: Farm-removebg-preview_8
+  - first:
+      213: -4999727233188909135
+    second: Farm-removebg-preview_9
+  - first:
+      213: 6617099350895258573
+    second: Farm-removebg-preview_10
+  - first:
+      213: 979533559683785556
+    second: Farm-removebg-preview_11
+  - first:
+      213: 6421162156556811984
+    second: Farm-removebg-preview_12
+  - first:
+      213: 6425243634260953110
+    second: Farm-removebg-preview_13
+  - first:
+      213: 1575423564544945122
+    second: Farm-removebg-preview_14
+  - first:
+      213: -1276020707731438962
+    second: Farm-removebg-preview_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Farm-removebg-preview_0
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 295
+        width: 42
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deb7602941a94a9f0800000000000000
+      internalID: -458071848945026067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_1
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 266
+        width: 68
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09681a3f82725f530800000000000000
+      internalID: 3888056910143915664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_2
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 332
+        width: 62
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 563eee8a4d9c91430800000000000000
+      internalID: 3754253679594496869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_3
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 365
+        width: 58
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 717c26f6c62acdcf0800000000000000
+      internalID: -226127294666455273
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_4
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 310
+        width: 104
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c42a134ee217b7d50800000000000000
+      internalID: 6736102113873601100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_5
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 254
+        width: 69
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be057abaf53561630800000000000000
+      internalID: 3897394197902610667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_6
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 100
+        width: 119
+        height: 190
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbdf41cb84da458b0800000000000000
+      internalID: -5164312344782373443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_7
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 263
+        width: 45
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b44357b8e6c90e10800000000000000
+      internalID: 2164479798738633908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_8
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 204
+        width: 61
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e7203bd9243af660800000000000000
+      internalID: 7420300690421983203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_9
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 240
+        width: 107
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bfade332966d9ab0800000000000000
+      internalID: -4999727233188909135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_10
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 109
+        width: 48
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcb649dfcc8a4db50800000000000000
+      internalID: 6617099350895258573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_11
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 131
+        width: 59
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 453a68e2590089d00800000000000000
+      internalID: 979533559683785556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_12
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 111
+        width: 99
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0deffbae5fc8c1950800000000000000
+      internalID: 6421162156556811984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_13
+      rect:
+        serializedVersion: 2
+        x: 233
+        y: 178
+        width: 103
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 618c67ffa0d0b2950800000000000000
+      internalID: 6425243634260953110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_14
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 33
+        width: 31
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2eb2b7f82670dd510800000000000000
+      internalID: 1575423564544945122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Farm-removebg-preview_15
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 30
+        width: 67
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8200ad4de9aa4ee0800000000000000
+      internalID: -1276020707731438962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Farm-removebg-preview_0: -458071848945026067
+      Farm-removebg-preview_1: 3888056910143915664
+      Farm-removebg-preview_10: 6617099350895258573
+      Farm-removebg-preview_11: 979533559683785556
+      Farm-removebg-preview_12: 6421162156556811984
+      Farm-removebg-preview_13: 6425243634260953110
+      Farm-removebg-preview_14: 1575423564544945122
+      Farm-removebg-preview_15: -1276020707731438962
+      Farm-removebg-preview_2: 3754253679594496869
+      Farm-removebg-preview_3: -226127294666455273
+      Farm-removebg-preview_4: 6736102113873601100
+      Farm-removebg-preview_5: 3897394197902610667
+      Farm-removebg-preview_6: -5164312344782373443
+      Farm-removebg-preview_7: 2164479798738633908
+      Farm-removebg-preview_8: 7420300690421983203
+      Farm-removebg-preview_9: -4999727233188909135
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

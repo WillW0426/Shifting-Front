@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//Handles showing unit movement previews
 public class UnitVisuals : MonoBehaviour
 {
     [Header("Selection")]
@@ -74,11 +75,11 @@ public class UnitVisuals : MonoBehaviour
             return;
         }
 
-        // The first point is the unit's current position.
+        // The first point is the unit's current position
         movementLine.positionCount = route.Count + 1;
         movementLine.SetPosition(0, transform.position);
 
-        // Add every planned destination to the line.
+        // Add every planned destination to the line
         for (int i = 0; i < route.Count; i++)
         {
             Vector2 point = route[i];
@@ -89,7 +90,7 @@ public class UnitVisuals : MonoBehaviour
             );
         }
 
-        // Place the outline at the final destination.
+        // Place the outline at the final destination
         Vector2 finalDestination = route[route.Count - 1];
 
         destinationOutline.transform.position = new Vector3(
@@ -98,7 +99,7 @@ public class UnitVisuals : MonoBehaviour
             transform.position.z
         );
 
-        // Predict the unit's final facing direction.
+        // Predict the unit's final facing direction
         float finalAngle = controller.GetPlannedFinalAngle();
 
         destinationOutline.transform.rotation =

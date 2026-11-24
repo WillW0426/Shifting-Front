@@ -98,7 +98,7 @@ public partial class @RTSControls: IInputActionCollection2, IDisposable
                     ""id"": ""a43d9bea-cf68-4b34-ae03-28d788a0c827"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": ""Hold(duration=0.2),Tap"",
+                    ""interactions"": """",
                     ""initialStateCheck"": false
                 },
                 {
@@ -116,7 +116,7 @@ public partial class @RTSControls: IInputActionCollection2, IDisposable
                     ""id"": ""b474ca64-fe0e-4c90-8903-18a59030d70b"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": ""Hold(duration=0.2),Tap"",
+                    ""interactions"": """",
                     ""initialStateCheck"": false
                 },
                 {

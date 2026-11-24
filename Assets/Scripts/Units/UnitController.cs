@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+//Handles unit movement
 public class UnitController : MonoBehaviour
 {
     private Rigidbody2D rb;
@@ -23,6 +23,7 @@ public class UnitController : MonoBehaviour
         stats = GetComponent<UnitStats>();
         speed = stats.GetSpeed();
         mobility = stats.GetMobility();
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -44,12 +45,12 @@ public class UnitController : MonoBehaviour
         hasDestination = true;
     }
 
-    // Add a destination to the end of the queue.
+    // Add a destination to the end of the queue
     public void QueueMove(Vector2 destination)
     {
         destinationQueue.Enqueue(destination);
 
-        // If the unit is idle, start moving to the first queued point.
+        // If the unit is idle, start moving to the first queued point
         if (!hasDestination)
         {
             MoveToNextDestination();
@@ -86,22 +87,36 @@ public class UnitController : MonoBehaviour
         canPerformFinalRotation = false;
     }
 
+    public void StopMovement()
+    {
+        destinationQueue.Clear();
+        hasDestination = false;
+
+        ClearFinalRotation();
+
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+    }
+
     private void FixedUpdate()
     {
-        // If there is no movement left, perform the final rotation.
+        // If there is no movement left, perform the final rotation
         if (!hasDestination)
         {
             if (canPerformFinalRotation && hasFinalRotation)
             {
+                // Freeze position, but allow rotation
+                rb.constraints = RigidbodyConstraints2D.FreezePosition;
+
                 float newAngle = Mathf.MoveTowardsAngle(
                     rb.rotation,
                     finalRotation,
-                    mobility * 30f * Time.fixedDeltaTime
+                    stats.GetMobility() * 15f * Time.fixedDeltaTime
                 );
 
                 rb.MoveRotation(newAngle);
 
-                // Check whether we have reached the final rotation.
+                // Check whether we have reached the final rotation
                 if (Mathf.Abs(Mathf.DeltaAngle(newAngle, finalRotation)) < 1f)
                 {
                     rb.MoveRotation(finalRotation);
@@ -111,8 +126,17 @@ public class UnitController : MonoBehaviour
                 }
             }
 
+            else
+            {
+                // Unit is completely idle
+                rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            }
+
             return;
         }
+
+        // Unfreeze the unit for movement
+        rb.constraints = RigidbodyConstraints2D.None;
 
         Vector2 currentPosition = rb.position;
         Vector2 direction = moveDestination - currentPosition;
@@ -124,25 +148,25 @@ public class UnitController : MonoBehaviour
             return;
         }
 
-        // Calculate the direction the unit needs to face.
+        // Calculate the direction the unit needs to face
         float targetAngle =
             Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
 
-        // Rotate gradually toward the movement direction.
+        // Rotate gradually toward the movement direction
         float newMovementAngle = Mathf.MoveTowardsAngle(
             rb.rotation,
             targetAngle,
-            mobility * 30f * Time.fixedDeltaTime
+            stats.GetMobility() * 15f * Time.fixedDeltaTime
         );
 
         rb.MoveRotation(newMovementAngle);
 
-        // Don't move until the unit is facing its destination.
+        // Don't move until the unit is facing its destination
         if (Mathf.Abs(Mathf.DeltaAngle(newMovementAngle, targetAngle)) > 1f)
             return;
 
         Vector2 nextPosition = currentPosition
-            + direction.normalized * speed * Time.fixedDeltaTime;
+            + direction.normalized * stats.GetSpeed() * 0.5f * Time.fixedDeltaTime;
 
         rb.MovePosition(nextPosition);
     }
@@ -151,13 +175,13 @@ public class UnitController : MonoBehaviour
     {
         List<Vector2> route = new List<Vector2>();
 
-        // Add the current destination first.
+        // Add the current destination first
         if (hasDestination)
         {
             route.Add(moveDestination);
         }
 
-        // Then add the remaining queued destinations.
+        // Then add the remaining queued destinations
         route.AddRange(destinationQueue);
 
         return route;
@@ -165,7 +189,7 @@ public class UnitController : MonoBehaviour
 
     public float GetPlannedFinalAngle()
     {
-        // If a final rotation has been specified, use it.
+        // If a final rotation has been specified, use it
         if (hasFinalRotation)
             return finalRotation;
 
@@ -174,10 +198,10 @@ public class UnitController : MonoBehaviour
         if (route.Count == 0)
             return rb.rotation;
 
-        // The final destination.
+        // The final destination
         Vector2 finalPosition = route[route.Count - 1];
 
-        // The position immediately before the final destination.
+        // The position immediately before the final destination
         Vector2 previousPosition;
 
         if (route.Count >= 2)
@@ -187,7 +211,7 @@ public class UnitController : MonoBehaviour
         else
         {
             // If there is only one destination, use the unit's
-            // current position as the starting point.
+            // current position as the starting point
             previousPosition = rb.position;
         }
 
@@ -196,7 +220,7 @@ public class UnitController : MonoBehaviour
         if (direction.sqrMagnitude < 0.0001f)
             return rb.rotation;
 
-        // The unit's forward direction is positive Y.
+        // The unit's forward direction is positive Y
         return Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
     }
 }
